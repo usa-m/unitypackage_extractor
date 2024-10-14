@@ -4,6 +4,7 @@ from unitypackage_extractor.extractor import extractPackage
 
 SCAN_DIR = r"D:\UnityAssets"
 OUT_DIR = r"D:\UnityAssets\[ExtractedAssets]"
+EN_SEPARATE_FOLDERS = True
 
 # Creating output directory
 if not isdir(OUT_DIR):
@@ -33,23 +34,29 @@ def get_files_in_dir(dir_name, extension = ""):
       full_name = join(dir_name, name)
 
       if isfile(full_name):
-        if extension == None or extension == "":
-          yield full_name
-        elif full_name.lower().endswith(extension.lower()):
-          yield full_name
+        if extension == None or \
+           extension == "" or   \
+           name.lower().endswith(extension.lower()):
+          yield (full_name, name)
 
   except:
       return f"<cannot access - {dir_name}>"
 
 # Processing all the Unity Package files
-file_number = 1
-for dirname in get_dirs(SCAN_DIR, depth = 0):
-  for filename in get_files_in_dir(dirname, ".unitypackage"):
-    print(f"Processing #{file_number}: {filename}")
-    
-    extractPackage(filename, outputPath=OUT_DIR)
+file_count = 0
+output_path = OUT_DIR
+for scan_dirname in get_dirs(SCAN_DIR, depth = 20):
+  for (scan_file_path, scan_filename) in get_files_in_dir(scan_dirname, ".unitypackage"):
+    file_count += 1
 
-    print(f"    ----> Completed processing #{file_number}: {filename}")
-    file_number += 1
+    print(f"Processing (#{file_count}) -- {scan_file_path}")
+    
+    if EN_SEPARATE_FOLDERS:
+      output_path = join(OUT_DIR, scan_filename)
+
+    extractPackage(scan_file_path, outputPath=output_path)
+
+    print(f"    ----> Completed processing (#{file_count}) -- {scan_file_path}")
+    
 
 
